@@ -1,8 +1,7 @@
 import enums.AppState;
 import processing.core.PApplet;
 import processing.event.KeyEvent;
-
-import java.util.Random;
+import processing.event.MouseEvent;
 
 import java.util.Random;
 
@@ -14,7 +13,7 @@ public class Main extends PApplet {
     int height = 800;
     int width = 800;
     int redrawEvery = 100;
-    int currentTick = 100;
+    int currentTick = 0;
 
     boolean[][] grid;
 
@@ -27,9 +26,11 @@ public class Main extends PApplet {
     }
 
     public void draw() {
+        background(0,0,0);
         for (int x = 0; x < grid.length; x++) {
             for (int y = 0; y < grid[x].length; y++) {
                 if (grid[x][y]) {
+                    fill(255);  // Set fill color to white for alive cells
                     rect(x * cellSize, y * cellSize, cellSize, cellSize);
                 }
             }
@@ -39,7 +40,7 @@ public class Main extends PApplet {
             currentTick++;
             if (currentTick > redrawEvery) {
                 currentTick = 0;
-                println("DRAW");
+                recalculateGrid();
             }
         }
     }
@@ -47,36 +48,51 @@ public class Main extends PApplet {
     public void setup() {
         stroke(255);  // Set line drawing color to white
         background(0,0,0);
-        this.grid = randomize(height / cellSize, width / cellSize);
+        // Initialize the grid with false
+        this.grid = initializeGrid(height / cellSize, width / cellSize);
     }
 
     @Override
     public void keyPressed(KeyEvent event) {
-        switch (event.getKey()) {
+
+        switch (event.getKeyCode()) {
             case 10 -> { // ENTER
                 if (state == AppState.RUNNING) {
                     state = AppState.PAUSED;
                 }
-                println("FORCE_DRAW");
                 recalculateGrid();
             }
 
             case 32  -> { // SPACE
                 if (state == AppState.PAUSED) {
                     state = AppState.RUNNING;
-                    println("RESUME");
                 } else {
                     state = AppState.PAUSED;
                     currentTick = 0;
-                    println("STOP");
                 }
             }
+
+            case 17 -> { // CTRL
+                this.grid = randomizeGrid(height / cellSize, width / cellSize);
+            }
+        }
+    }
+
+    @Override
+    public void mouseClicked(MouseEvent event) {
+        if (state == AppState.PAUSED) {
+            // Get the selected cell
+            int cellCol = event.getY() / cellSize;
+            int cellRow = event.getX() / cellSize;
+
+            // Toggle the cell state
+            grid[cellRow][cellCol] = !grid[cellRow][cellCol];
         }
     }
 
     private void recalculateGrid() {}
 
-    private static boolean[][] randomize(int rows, int cols) {
+    private static boolean[][] randomizeGrid(int rows, int cols) {
         Random random = new Random();
         boolean[][] array = new boolean[rows][cols];
         for (int i = 0; i < rows; i++) {
@@ -85,5 +101,9 @@ public class Main extends PApplet {
             }
         }
         return array;
+    }
+
+    private static boolean[][] initializeGrid(int rows, int cols) {
+        return new boolean[rows][cols];
     }
 }
