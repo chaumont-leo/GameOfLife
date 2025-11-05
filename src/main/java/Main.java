@@ -15,8 +15,10 @@ public class Main extends PApplet {
     int cellSize = 1;
     int height = 800;
     int width = 800;
-    int redrawEvery = 3;
+    int redrawEvery = 0;
     int currentTick = 0;
+
+    private GridParser gridParser = new GridParser(height / cellSize, width / cellSize);
 
     boolean[][] grid;
     IGameRulesFactory  gameRulesFactory;
@@ -31,11 +33,7 @@ public class Main extends PApplet {
 
     public void draw() {
         background(0,0,0);
-        for (int x = 0; x < grid.length; x++) {
-            for (int y = 0; y < grid[x].length; y++) {
-                firstGridInit(x, y);
-            }
-        }
+        gridParser.execute(this::firstGridInit);
 
         if (state == AppState.RUNNING) {
             currentTick++;
@@ -64,18 +62,15 @@ public class Main extends PApplet {
         int[][] countGrid =  new int[height / cellSize][width / cellSize];
         boolean[][] nextGrid =  new boolean[height / cellSize][width / cellSize];
 
-        for (int x = 0; x < grid.length; x++) {
-            for (int y = 0; y < grid[x].length; y++) {
-                if(grid[x][y]) countNeighbours(x, y, countGrid);
-            }
-        }
-        for (int x = 0; x < grid.length; x++) {
-            for (int y = 0; y < grid[x].length; y++) {
-                nextGrid[x][y] = this.grid[x][y]
-                        ? gameRulesFactory.initializeGameRules().neighboursToSurvive().contains(countGrid[x][y])
-                        : gameRulesFactory.initializeGameRules().neighboursToSpawn().contains(countGrid[x][y]);
-            }
-        }
+        gridParser.execute((x, y) -> {
+            if(grid[x][y]) countNeighbours(x, y, countGrid);
+        });
+
+        gridParser.execute((x, y) -> {
+            nextGrid[x][y] = this.grid[x][y]
+                    ? gameRulesFactory.initializeGameRules().neighboursToSurvive().contains(countGrid[x][y])
+                    : gameRulesFactory.initializeGameRules().neighboursToSpawn().contains(countGrid[x][y]);
+        });
         this.grid = nextGrid;
     }
 
