@@ -5,11 +5,8 @@ import processing.event.MouseEvent;
 import rules.BaseGameFactory;
 import rules.IGameRulesFactory;
 
-import java.util.Arrays;
-import java.util.Date;
 import java.util.Random;
 
-import java.util.Random;
 
 public class Main extends PApplet {
     AppState state = AppState.PAUSED;
@@ -36,10 +33,7 @@ public class Main extends PApplet {
         background(0,0,0);
         for (int x = 0; x < grid.length; x++) {
             for (int y = 0; y < grid[x].length; y++) {
-                if (grid[x][y]) {
-                    fill(255);  // Set fill color to white for alive cells
-                    rect(x * cellSize, y * cellSize, cellSize, cellSize);
-                }
+                firstGridInit(x, y);
             }
         }
 
@@ -52,6 +46,13 @@ public class Main extends PApplet {
         }
     }
 
+    private void firstGridInit(int x, int y) {
+        if (grid[x][y]) {
+            fill(255);  // Set fill color to white for alive cells
+            rect(x * cellSize, y * cellSize, cellSize, cellSize);
+        }
+    }
+
     public void setup() {
         stroke(255);  // Set line drawing color to white
         background(0,0,0);
@@ -60,29 +61,39 @@ public class Main extends PApplet {
     }
 
     private void recalculateGrid() {
+        int[][] countGrid =  new int[height / cellSize][width / cellSize];
         boolean[][] nextGrid =  new boolean[height / cellSize][width / cellSize];
+
+        for (int x = 0; x < grid.length; x++) {
+            for (int y = 0; y < grid[x].length; y++) {
+                if(grid[x][y]) countNeighbours(x, y, countGrid);
+            }
+        }
         for (int x = 0; x < grid.length; x++) {
             for (int y = 0; y < grid[x].length; y++) {
                 nextGrid[x][y] = this.grid[x][y]
-                        ? gameRulesFactory.initializeGameRules().neighboursToSurvive().contains(calculateNeighbours(x, y))
-                        : gameRulesFactory.initializeGameRules().neighboursToSpawn().contains(calculateNeighbours(x, y));
+                        ? gameRulesFactory.initializeGameRules().neighboursToSurvive().contains(countGrid[x][y])
+                        : gameRulesFactory.initializeGameRules().neighboursToSpawn().contains(countGrid[x][y]);
             }
         }
         this.grid = nextGrid;
     }
 
-    private int calculateNeighbours(int x, int y) {
-        int neighbours = 0;
-        for (int i = -1; i < 2; i++) {
-            for (int j = -1; j < 2; j++) {
-                if(x + i < 0 || y + j < 0 || x + i >= (width / cellSize) || y + j >= (height / cellSize)) continue;
-                neighbours += grid[x + i][y + j]
-                        ? (i == 0 && j == 0) ? 0 : 1
-                        : 0;
-            }
+    private void countNeighbours(int x, int y, int[][] grid) {
+        if(x-1 >= 0) {
+            if(y - 1 >= 0) grid[x-1][y-1]++;
+            grid[x-1][y]++;
+            if(y + 1 < height / cellSize) grid[x-1][y+1]++;
         }
-        return neighbours;
+        if(y - 1 >= 0) grid[x][y-1]++;
+        if(y + 1 < height / cellSize) grid[x][y+1]++;
+        if(x+1 < width / cellSize) {
+            if(y - 1 >= 0) grid[x+1][y-1]++;
+            grid[x+1][y]++;
+            if(y + 1 < height / cellSize) grid[x+1][y+1]++;
+        }
     }
+
     @Override
     public void keyPressed(KeyEvent event) {
 
