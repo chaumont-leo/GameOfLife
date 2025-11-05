@@ -2,6 +2,11 @@ import enums.AppState;
 import processing.core.PApplet;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
+import rules.BaseGameFactory;
+import rules.IGameRulesFactory;
+
+import java.util.Arrays;
+import java.util.Random;
 
 import java.util.Random;
 
@@ -9,13 +14,14 @@ public class Main extends PApplet {
     AppState state = AppState.PAUSED;
 
     // CONFIG
-    int cellSize = 8;
+    int cellSize = 1;
     int height = 800;
     int width = 800;
-    int redrawEvery = 100;
+    int redrawEvery = 20;
     int currentTick = 0;
 
     boolean[][] grid;
+    IGameRulesFactory  gameRulesFactory;
 
     public static void main(String[] args) {
         PApplet.main("Main");
@@ -48,10 +54,30 @@ public class Main extends PApplet {
     public void setup() {
         stroke(255);  // Set line drawing color to white
         background(0,0,0);
-        // Initialize the grid with false
         this.grid = initializeGrid(height / cellSize, width / cellSize);
+        this.gameRulesFactory = new BaseGameFactory();
     }
 
+    private void recalculateGrid() {
+        boolean[][] nextGrid =  new boolean[height / cellSize][width / cellSize];
+        for (int x = 0; x < grid.length; x++) {
+            for (int y = 0; y < grid[x].length; y++) {
+                nextGrid[x][y] = gameRulesFactory.initializeGameRules().neighboursToSurvive().contains(calculateNeighbours(x, y));
+            }
+        }
+        this.grid = nextGrid;
+    }
+
+    private int calculateNeighbours(int x, int y) {
+        int neighbours = -1;
+        for (int i = -1; i < 2; i++) {
+            for (int j = -1; j < 2; j++) {
+                if(x + i < 0 || y + j < 0 || x + i >= (width / cellSize) || y + j >= (height / cellSize)) continue;
+                neighbours += grid[x + i][y + j] ? 1 : 0;
+            }
+        }
+        return neighbours;
+    }
     @Override
     public void keyPressed(KeyEvent event) {
 
@@ -90,7 +116,6 @@ public class Main extends PApplet {
         }
     }
 
-    private void recalculateGrid() {}
 
     private static boolean[][] randomizeGrid(int rows, int cols) {
         Random random = new Random();

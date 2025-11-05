@@ -1,5 +1,7 @@
 package rules;
 
-public interface IGameRules {
+import java.util.ArrayList;
 
+public interface IGameRules {
+    public ArrayList<Integer> neighboursToSurvive();
 }
