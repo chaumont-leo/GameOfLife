@@ -15,10 +15,10 @@ public class Main extends PApplet {
     AppState state = AppState.PAUSED;
 
     // CONFIG
-    int cellSize = 8;
+    int cellSize = 1;
     int height = 800;
     int width = 800;
-    int redrawEvery = 20;
+    int redrawEvery = 3;
     int currentTick = 0;
 
     boolean[][] grid;
@@ -105,6 +105,10 @@ public class Main extends PApplet {
 
             case 17 -> { // CTRL
                 this.grid = randomizeGrid(height / cellSize, width / cellSize);
+            }
+
+            case 82 -> { // R
+                this.grid = initializeGrid(height / cellSize, width / cellSize);
             }
         }
     }
