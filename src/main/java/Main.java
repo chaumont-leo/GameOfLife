@@ -1,10 +1,12 @@
 import processing.core.PApplet;
+import processing.event.KeyEvent;
+
 import java.util.Random;
 
 import java.util.Random;
 
 public class Main extends PApplet {
-    int cellSize = 4;
+    int cellSize = 8;
     int height = 800;
     int width = 800;
     boolean[][] grid;
@@ -26,11 +28,14 @@ public class Main extends PApplet {
             }
         }
     }
+
     public void setup() {
         stroke(255);  // Set line drawing color to white
         background(0,0,0);
         this.grid = randomize(height / cellSize, width / cellSize);
     }
+
+    private void recalculateGrid() {}
 
     private static boolean[][] randomize(int rows, int cols) {
         Random random = new Random();
