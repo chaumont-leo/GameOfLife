@@ -1,46 +1,41 @@
+import config.ConfigManager;
+import config.Configuration;
 import context.Context;
-import enums.AppState;
-import grids.BaseGridType;
-import grids.ToroidalGridType;
+import context.AppState;
 import processing.core.PApplet;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
-import rules.BaseGameRules;
 
 import java.util.Random;
 
 
 public class Main extends PApplet {
-    AppState state = AppState.PAUSED;
-
-    // CONFIG
-    int cellSize = 12;
-    int height = 800;
-    int width = 800;
-    int redrawEvery = 0;
-    int currentTick = 0;
-
-    private GridParser gridParser = new GridParser(height / cellSize, width / cellSize);
+    static GridParser gridParser;
+    static Configuration config;
 
     boolean[][] grid;
     Context context;
 
     public static void main(String[] args) {
+        config = ConfigManager.getInstance().getConfiguration();
         PApplet.main("Main");
     }
 
     public void settings() {
-        size(width, height);
+        size(
+                config.cols() * config.cellSize(),
+                config.rows() * config.cellSize()
+        );
     }
 
     public void draw() {
         background(0,0,0);
         gridParser.execute(this::firstGridInit);
 
-        if (state == AppState.RUNNING) {
-            currentTick++;
-            if (currentTick > redrawEvery) {
-                currentTick = 0;
+        if (context.state == AppState.RUNNING) {
+            context.currentTick++;
+            if (context.currentTick > context.tickSpeed) {
+                context.currentTick = 0;
                 recalculateGrid();
             }
         }
@@ -49,25 +44,21 @@ public class Main extends PApplet {
     private void firstGridInit(int x, int y) {
         if (grid[x][y]) {
             fill(255);  // Set fill color to white for alive cells
-            rect(x * cellSize, y * cellSize, cellSize, cellSize);
+            rect(x * context.cellSize, y * context.cellSize, context.cellSize, context.cellSize);
         }
     }
 
     public void setup() {
         stroke(255);  // Set line drawing color to white
         background(0,0,0);
-        this.grid = initializeGrid(height / cellSize, width / cellSize);
-        this.context = new Context();
-        this.context.cellSize = cellSize;
-        this.context.height = height;
-        this.context.width = width;
-        this.context.setGameRules(new BaseGameRules());
-        this.context.setGridType(new ToroidalGridType());
+        gridParser = new GridParser(config.cols(), config.rows());
+        context = Context.fromConfig(config);
+        grid = initializeGrid(config.rows(), config.cols());
     }
 
     private void recalculateGrid() {
-        int[][] countGrid =  new int[height / cellSize][width / cellSize];
-        boolean[][] nextGrid =  new boolean[height / cellSize][width / cellSize];
+        int[][] countGrid =  new int[context.rows][context.cols];
+        boolean[][] nextGrid =  new boolean[context.rows][context.cols];
 
         gridParser.execute((x, y) -> {
             if(grid[x][y]) context.getNeighbourCount(x, y, countGrid);
@@ -86,40 +77,42 @@ public class Main extends PApplet {
 
         switch (event.getKeyCode()) {
             case 10 -> { // ENTER
-                if (state == AppState.RUNNING) {
-                    state = AppState.PAUSED;
+                if (context.state == AppState.RUNNING) {
+                    context.state = AppState.PAUSED;
                 }
                 recalculateGrid();
             }
 
             case 32  -> { // SPACE
-                if (state == AppState.PAUSED) {
-                    state = AppState.RUNNING;
+                if (context.state == AppState.PAUSED) {
+                    context.state = AppState.RUNNING;
                 } else {
-                    state = AppState.PAUSED;
-                    currentTick = 0;
+                    context.state = AppState.PAUSED;
+                    context.currentTick = 0;
                 }
             }
 
             case 17 -> { // CTRL
-                this.grid = randomizeGrid(height / cellSize, width / cellSize);
+                this.grid = randomizeGrid(context.rows, context.cols);
             }
 
             case 82 -> { // R
-                this.grid = initializeGrid(height / cellSize, width / cellSize);
+                this.grid = initializeGrid(context.rows, context.cols);
             }
         }
     }
 
     @Override
     public void mouseClicked(MouseEvent event) {
-        if (state == AppState.PAUSED) {
+        if (context.state == AppState.PAUSED) {
             // Get the selected cell
-            int cellCol = event.getY() / cellSize;
-            int cellRow = event.getX() / cellSize;
+            int cellCol = event.getY() / context.cellSize;
+            int cellRow = event.getX() / context.cellSize;
 
             // Toggle the cell state
             grid[cellRow][cellCol] = !grid[cellRow][cellCol];
+        } else {
+            context.state = AppState.PAUSED;
         }
     }
 

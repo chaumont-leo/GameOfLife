@@ -1,0 +1,15 @@
+# cellSize: (int) Size of each cell in pixels
+cellSize: 10
+
+# grid dimensions: (int) Number of columns and rows in the grid
+cols: 80
+rows: 80
+
+# tickSpeed: (int) Speed of the simulation, the lower, the faster
+tickSpeed: 2
+
+# baseGridType: (string) Type of grid boundary conditions : BASE | TOROIDAL
+baseGridType: TOROIDAL
+
+# baseRuleSet: (string) Rule set to use for the simulation : BASE
+baseRuleSet: BASE

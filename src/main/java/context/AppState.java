@@ -1,4 +1,4 @@
-package enums;
+package context;
 
 public enum AppState {
     PAUSED,
