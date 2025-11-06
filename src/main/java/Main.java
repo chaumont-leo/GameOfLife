@@ -1,6 +1,7 @@
 import context.Context;
 import enums.AppState;
 import grids.BaseGridType;
+import grids.ToroidalGridType;
 import processing.core.PApplet;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
@@ -61,7 +62,7 @@ public class Main extends PApplet {
         this.context.height = height;
         this.context.width = width;
         this.context.setGameRules(new BaseGameRules());
-        this.context.setGridType(new BaseGridType());
+        this.context.setGridType(new ToroidalGridType());
     }
 
     private void recalculateGrid() {
