@@ -1,9 +1,10 @@
+import context.Context;
 import enums.AppState;
+import grids.BaseGridType;
 import processing.core.PApplet;
 import processing.event.KeyEvent;
 import processing.event.MouseEvent;
-import rules.BaseGameFactory;
-import rules.IGameRulesFactory;
+import rules.BaseGameRules;
 
 import java.util.Random;
 
@@ -12,7 +13,7 @@ public class Main extends PApplet {
     AppState state = AppState.PAUSED;
 
     // CONFIG
-    int cellSize = 1;
+    int cellSize = 12;
     int height = 800;
     int width = 800;
     int redrawEvery = 0;
@@ -21,7 +22,7 @@ public class Main extends PApplet {
     private GridParser gridParser = new GridParser(height / cellSize, width / cellSize);
 
     boolean[][] grid;
-    IGameRulesFactory  gameRulesFactory;
+    Context context;
 
     public static void main(String[] args) {
         PApplet.main("Main");
@@ -55,7 +56,12 @@ public class Main extends PApplet {
         stroke(255);  // Set line drawing color to white
         background(0,0,0);
         this.grid = initializeGrid(height / cellSize, width / cellSize);
-        this.gameRulesFactory = new BaseGameFactory();
+        this.context = new Context();
+        this.context.cellSize = cellSize;
+        this.context.height = height;
+        this.context.width = width;
+        this.context.setGameRules(new BaseGameRules());
+        this.context.setGridType(new BaseGridType());
     }
 
     private void recalculateGrid() {
@@ -63,30 +69,15 @@ public class Main extends PApplet {
         boolean[][] nextGrid =  new boolean[height / cellSize][width / cellSize];
 
         gridParser.execute((x, y) -> {
-            if(grid[x][y]) countNeighbours(x, y, countGrid);
+            if(grid[x][y]) context.getNeighbourCount(x, y, countGrid);
         });
 
         gridParser.execute((x, y) -> {
             nextGrid[x][y] = this.grid[x][y]
-                    ? gameRulesFactory.initializeGameRules().neighboursToSurvive().contains(countGrid[x][y])
-                    : gameRulesFactory.initializeGameRules().neighboursToSpawn().contains(countGrid[x][y]);
+                    ? context.getNeighboursToSurvive().contains(countGrid[x][y])
+                    : context.getNeighboursToSpawn().contains(countGrid[x][y]);
         });
         this.grid = nextGrid;
-    }
-
-    private void countNeighbours(int x, int y, int[][] grid) {
-        if(x-1 >= 0) {
-            if(y - 1 >= 0) grid[x-1][y-1]++;
-            grid[x-1][y]++;
-            if(y + 1 < height / cellSize) grid[x-1][y+1]++;
-        }
-        if(y - 1 >= 0) grid[x][y-1]++;
-        if(y + 1 < height / cellSize) grid[x][y+1]++;
-        if(x+1 < width / cellSize) {
-            if(y - 1 >= 0) grid[x+1][y-1]++;
-            grid[x+1][y]++;
-            if(y + 1 < height / cellSize) grid[x+1][y+1]++;
-        }
     }
 
     @Override
